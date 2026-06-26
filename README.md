@@ -8,11 +8,11 @@ This repository contains the Next.js Agent Console which connects to the mock `a
 
 ## 📹 Chaos Mode Video Demo
 
-> [!IMPORTANT]
-> **Insert your demo video link below before submitting:**
-> * Replace the placeholder below with your YouTube, Loom, or Drive link.
+https://github.com/user-attachments/assets/50d065e6-e05d-406c-b8fe-97c9ea44a86d
 
-* **[Watch the Chaos Mode Demo Video](YOUR_VIDEO_LINK_HERE)**
+
+
+
 
 ---
 
