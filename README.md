@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agent Console - Chaos Mode Ready
 
-## Getting Started
+This repository contains the Next.js Agent Console which connects to the mock `agent-server` over WebSockets. It handles token streaming, mid-stream tool call interruptions, live timeline logs, context snapshot diffing, and reconnection recovery.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📹 Chaos Mode Video Demo
+
+> [!IMPORTANT]
+> **Insert your demo video link below before submitting:**
+> * Replace the placeholder below with your YouTube, Loom, or Drive link.
+
+* **[Watch the Chaos Mode Demo Video](YOUR_VIDEO_LINK_HERE)**
+
+---
+
+## 🎯 Solution Approach
+
+The system decouples **network state compliance** from the **UI rendering state** using a three-tier architecture:
+
+```mermaid
+flowchart TD
+    ws[WebSocket Connection] -->|Raw Messages| buffer[SeqBuffer Map]
+    buffer -->|Strictly Ordered Messages| reducer[chatMachineReducer]
+    reducer -->|State Updates| UI[Next.js React UI]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Sequence Buffer Queue (`SeqBuffer`)**: A custom O(1) buffer backed by a `Map`. It holds out-of-order frames, drops duplicates, and drains only contiguous sequence streams to prevent rendering corruption.
+2. **Deterministic State Reducer (`chatMachineReducer`)**: A pure reducer that processes sequence-valid server messages into chat segments, timeline logs, and context snapshot histories.
+3. **Resilient Hook Layer (`useAgentConnection`)**: Handles the WebSocket connection, heartbeat compliance (`PING`/`PONG`), tool acknowledgement compliance (`TOOL_ACK`), backoff-based reconnections, and state resume handshakes (`RESUME`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project File Structure
 
-## Learn More
+```
+your-submission-repo/
+├── agent-server/              # Mock backend (provided, unmodified)
+│   ├── src/                   # Server endpoints and mock logs
+│   ├── Dockerfile             # Docker container definition
+│   └── package.json           # Server configuration
+│
+├── public/                    # Static assets
+│
+├── src/                       # Frontend Next.js Client
+│   ├── app/                   # App Router pages and global CSS styles
+│   │   ├── globals.css        # Stylesheet & resets
+│   │   ├── layout.tsx         # Root HTML layout and providers
+│   │   └── page.tsx           # Main workspace grid layout
+│   │
+│   ├── components/            # React UI components
+│   │   ├── chat/              # Chat message row, text streams, and tool cards
+│   │   ├── inspector/         # Context state viewer and diff engine
+│   │   ├── timeline/          # Live trace logging panel
+│   │   └── ui/                # Shared layout blocks (Cards, Badges, etc.)
+│   │
+│   ├── hooks/                 # WebSocket hook layer (useAgentConnection.ts)
+│   │
+│   ├── lib/                   # pure logic helpers
+│   │   ├── network/           # sequence buffer and backoff logic
+│   │   ├── state/             # chat machine reducer and utility functions
+│   │   └── utils/             # common helper functions (cn, etc.)
+│   │
+│   └── types/                 # Strict TypeScript definitions
+│       ├── escapeHatch.ts     # JSON validation helpers
+│       ├── machine.ts         # Reducer state definitions
+│       └── protocol.ts        # Discriminated unions for WebSocket messages
+│
+├── package.json               # Development scripts and libraries
+├── tsconfig.json              # TypeScript compilation setup
+├── next.config.ts             # Next.js bundler config
+├── tailwind.config.ts         # Styling layout config
+├── postcss.config.mjs         # CSS compiler setup
+├── eslint.config.mjs          # Code linter rules
+├── README.md                  # Quick-start and solution guide (This file)
+└── decisions.md               # Detailed architectural design decisions
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Running the Project
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. Run the Agent Server (Backend)
 
-## Deploy on Vercel
+Run using Docker:
+```bash
+cd agent-server
+docker build -t agent-server .
+# Normal Mode:
+docker run -p 4747:4747 agent-server
+# Chaos Mode (Simulate packet drops, duplicates, heartbeat fail, disconnects):
+docker run -p 4747:4747 agent-server --mode chaos
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Or run without Docker:
+```bash
+cd agent-server
+npm install
+npm run build
+npm start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Run the Next.js App (Frontend)
+
+In the root directory, run:
+```bash
+# Install dependencies
+npm install
+
+# Start the local development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the console dashboard.
+
+### 3. Run Automated Tests
+
+To verify sequence ordering buffers and context diff rendering, run:
+```bash
+npm run test
+```
