@@ -1,3 +1,5 @@
+
+
 # Agent Console - Chaos Mode Ready
 
 This repository contains the Next.js Agent Console which connects to the mock `agent-server` over WebSockets. It handles token streaming, mid-stream tool call interruptions, live timeline logs, context snapshot diffing, and reconnection recovery.
