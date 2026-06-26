@@ -94,14 +94,6 @@ docker run -p 4747:4747 agent-server
 docker run -p 4747:4747 agent-server --mode chaos
 ```
 
-Or run without Docker:
-```bash
-cd agent-server
-npm install
-npm run build
-npm start
-```
-
 ### 2. Run the Next.js App (Frontend)
 
 In the root directory, run:
